@@ -1,15 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class ThirdPersonMovement : MonoBehaviour
 {
+    public event Action Idle = delegate { };
+    public event Action StartRunning = delegate { };
+
     [SerializeField] CharacterController controller;
     [SerializeField] Transform cam;
 
     [SerializeField] float turnSmoothTime = 0.1f;
     [SerializeField] float speed = 6f;
+
     float turnSmoothVelocity;
+    bool _isMoving = false;
+
+    private void Start()
+    {
+        Idle?.Invoke();
+    }
 
     // Update is called once per frame
     void Update()
@@ -20,6 +31,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
         if (direction.magnitude >= 0.1f)
         {
+            CheckIfStartedMoving();
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
@@ -27,6 +39,31 @@ public class ThirdPersonMovement : MonoBehaviour
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             controller.Move(moveDir.normalized * speed * Time.deltaTime);
         }
+        else
+        {
+            CheckIfStoppedMoving();
+        }
+    }
 
+    private void CheckIfStartedMoving()
+    {
+        if (_isMoving == false)
+        {
+            StartRunning?.Invoke();
+            Debug.Log("Started");
+        }
+
+        _isMoving = true;
+    }
+
+    private void CheckIfStoppedMoving()
+    {
+        if (_isMoving == true)
+        {
+            Idle?.Invoke();
+            Debug.Log("Stopped");
+        }
+
+        _isMoving = false;
     }
 }
