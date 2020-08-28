@@ -610,8 +610,8 @@ GameObject:
   m_Component:
   - component: {fileID: 721195912}
   - component: {fileID: 721195914}
-  - component: {fileID: 721195913}
   - component: {fileID: 721195915}
+  - component: {fileID: 721195913}
   - component: {fileID: 721195916}
   m_Layer: 0
   m_Name: Third Person Player

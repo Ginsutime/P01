@@ -19,25 +19,39 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _animator = GetComponent<Animator>();
     }
 
-    public void OnIdle()
-    {
-        _animator.CrossFadeInFixedTime(IdleState, .2f);
-    }
-
     private void OnEnable()
     {
         _thirdPersonMovement.Idle += OnIdle;
         _thirdPersonMovement.StartRunning += OnStartRunning;
+        _thirdPersonMovement.Jumping += OnJumping;
+        _thirdPersonMovement.Falling += OnFalling;
     }
 
     private void OnDisable()
     {
         _thirdPersonMovement.Idle -= OnIdle;
         _thirdPersonMovement.StartRunning -= OnStartRunning;
+        _thirdPersonMovement.Jumping -= OnJumping;
+        _thirdPersonMovement.Falling -= OnFalling;
+    }
+
+    public void OnIdle()
+    {
+        _animator.CrossFadeInFixedTime(IdleState, .2f);
     }
 
     private void OnStartRunning()
     {
         _animator.CrossFadeInFixedTime(RunState, .2f);
+    }
+
+    private void OnJumping()
+    {
+        _animator.CrossFadeInFixedTime(JumpState, .2f);
+    }
+
+    private void OnFalling()
+    {
+        _animator.CrossFadeInFixedTime(FallState, .2f);
     }
 }
