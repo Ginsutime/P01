@@ -9,16 +9,19 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action StartRunning = delegate { };
     public event Action Jumping = delegate { };
     public event Action Falling = delegate { };
+    public event Action Sprinting = delegate { };
 
     [SerializeField] CharacterController controller = null;
     [SerializeField] Transform cam = null;
 
     [SerializeField] float turnSmoothTime = 0.1f;
-    [SerializeField] float speed = 6f;
+    [SerializeField] float normspeed = 6f;
+    [SerializeField] float sprintspeed = 10f;
 
     float turnSmoothVelocity;
     bool _isMoving = false;
     bool _isJumping = false;
+    bool _isSprinting = false;
 
     private bool groundedPlayer;
     private float verticalVelocity;
@@ -53,12 +56,20 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         else if (horizontal > 0 || horizontal < 0 || vertical > 0 || vertical < 0)
         {
-            CheckIfStartedMoving();
+            verticalVelocity -= gravity * Time.deltaTime;
 
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+            {
+                CheckIfStartedMoving();
+            }
+            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
+            {
+                CheckIfStartedSprinting();
+            }
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
             {
                 verticalVelocity = jumpForce;
-                Debug.Log("Vert velocity is greater than 0");
+                Debug.Log("Jump and Land");
                 Invoke("CheckIfStartedJumping", 0f);
                 Invoke("CheckIfLanded", 1f);
                 _isJumping = true;
@@ -66,13 +77,15 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         else
         {
+            verticalVelocity -= gravity * Time.deltaTime;
             CheckIfStoppedMoving();
-            Debug.Log("Vert velocity is 0");
+            CheckIfStoppedSprinting();
+            Debug.Log("Idle");
 
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
             {
                 verticalVelocity = jumpForce;
-                Debug.Log("Vert velocity is greater than 0");
+                Debug.Log("Jump and Land");
                 Invoke("CheckIfStartedJumping", 0f);
                 Invoke("CheckIfLanded", 1f);
                 _isJumping = true;
@@ -89,11 +102,20 @@ public class ThirdPersonMovement : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            controller.Move(moveDir.normalized * speed * Time.deltaTime);
+
+            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
+            {
+                controller.Move(moveDir.normalized * sprintspeed * Time.deltaTime);
+            }
+            else
+            {
+                controller.Move(moveDir.normalized * normspeed * Time.deltaTime);
+            }
         }
         else
         {
             CheckIfStoppedMoving();
+            CheckIfStoppedSprinting();
         }
     }
 
@@ -106,6 +128,28 @@ public class ThirdPersonMovement : MonoBehaviour
         }
 
         _isMoving = true;
+    }
+
+    private void CheckIfStartedSprinting()
+    {
+        if (_isSprinting == false)
+        {
+            Sprinting?.Invoke();
+            Debug.Log("Started sprinting");
+        }
+
+        _isSprinting = true;
+    }
+
+    private void CheckIfStoppedSprinting()
+    {
+        if (_isSprinting == true)
+        {
+            Idle?.Invoke();
+            Debug.Log("Stopped sprinting");
+        }
+
+        _isSprinting = false;
     }
 
     private void CheckIfStoppedMoving()
@@ -121,23 +165,19 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void CheckIfStartedJumping()
     {
-        //if (_isJumping == false)
-       // {
-            Jumping?.Invoke();
-            Debug.Log("Jumping");
-       // }
-
-        //_isJumping = true;
+        Jumping?.Invoke();
+        Debug.Log("Jumping");
     }
 
     private void CheckIfLanded()
     {
-        //if (_isJumping == true)
-        //{
-            Falling?.Invoke();
-            Debug.Log("Landed");
-        //}
+        Falling?.Invoke();
+        Debug.Log("Landed");
+    }
 
-        //_isJumping = false;
+    private void CheckIfSprinting()
+    {
+        Sprinting?.Invoke();
+        Debug.Log("Sprinting");
     }
 }
