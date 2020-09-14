@@ -10,6 +10,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action Jumping = delegate { };
     public event Action Falling = delegate { };
     public event Action Sprinting = delegate { };
+    public event Action Casting = delegate { };
 
     [SerializeField] CharacterController controller = null;
     [SerializeField] Transform cam = null;
@@ -23,6 +24,7 @@ public class ThirdPersonMovement : MonoBehaviour
     bool _isJumping = false;
     bool _isSprinting = false;
 
+    private bool isCasting = false;
     private bool groundedPlayer;
     private float verticalVelocity;
     private float gravity = 10.0f;
@@ -36,86 +38,97 @@ public class ThirdPersonMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
-        Vector3 moveVector = new Vector3(0f, verticalVelocity, 0f);
-
-        groundedPlayer = controller.isGrounded;
-
-        // Code for gravity and jumping
-        if (_isJumping)
+        if (isCasting == false)
         {
-            verticalVelocity -= gravity * Time.deltaTime;
+            float horizontal = Input.GetAxisRaw("Horizontal");
+            float vertical = Input.GetAxisRaw("Vertical");
+            Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+            Vector3 moveVector = new Vector3(0f, verticalVelocity, 0f);
 
-            if (groundedPlayer)
+            groundedPlayer = controller.isGrounded;
+
+            // Code for gravity and jumping
+            if (_isJumping)
             {
-                Idle?.Invoke();
-                _isJumping = false;
+                verticalVelocity -= gravity * Time.deltaTime;
+
+                if (groundedPlayer)
+                {
+                    Idle?.Invoke();
+                    _isJumping = false;
+                }
             }
-        }
-        else if (horizontal > 0 || horizontal < 0 || vertical > 0 || vertical < 0)
-        {
-            verticalVelocity -= gravity * Time.deltaTime;
-
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+            else if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                CheckIfStartedMoving();
+                if (groundedPlayer)
+                {
+                    Invoke("CheckIfStartedCasting", 0f);
+                    Invoke("CheckIfStoppedCasting", 2f);
+                }
             }
-            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
+            else if (horizontal > 0 || horizontal < 0 || vertical > 0 || vertical < 0)
             {
-                CheckIfStartedSprinting();
-            }
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
-            {
-                verticalVelocity = jumpForce;
-                Debug.Log("Jump and Land");
-                Invoke("CheckIfStartedJumping", 0f);
-                Invoke("CheckIfLanded", 1f);
-                _isJumping = true;
-            }
-        }
-        else
-        {
-            verticalVelocity -= gravity * Time.deltaTime;
-            CheckIfStoppedMoving();
-            CheckIfStoppedSprinting();
-            Debug.Log("Idle");
+                verticalVelocity -= gravity * Time.deltaTime;
 
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
-            {
-                verticalVelocity = jumpForce;
-                Debug.Log("Jump and Land");
-                Invoke("CheckIfStartedJumping", 0f);
-                Invoke("CheckIfLanded", 1f);
-                _isJumping = true;
-            }
-        }
-
-        controller.Move(moveVector * Time.deltaTime);
-
-        // Code for moving
-        if (direction.magnitude >= 0.1f)
-        {
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-
-            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-
-            if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
-            {
-                controller.Move(moveDir.normalized * sprintspeed * Time.deltaTime);
+                if (Input.GetKeyDown(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
+                {
+                    CheckIfStartedMoving();
+                }
+                if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
+                {
+                    CheckIfStartedSprinting();
+                }
+                if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
+                {
+                    verticalVelocity = jumpForce;
+                    Debug.Log("Jump and Land");
+                    Invoke("CheckIfStartedJumping", 0f);
+                    Invoke("CheckIfLanded", 1f);
+                    _isJumping = true;
+                }
             }
             else
             {
-                controller.Move(moveDir.normalized * normspeed * Time.deltaTime);
+                verticalVelocity -= gravity * Time.deltaTime;
+                CheckIfStoppedMoving();
+                CheckIfStoppedSprinting();
+                Debug.Log("Idle");
+
+                if (Input.GetKeyDown(KeyCode.Space) || Input.GetKey(KeyCode.Space))
+                {
+                    verticalVelocity = jumpForce;
+                    Debug.Log("Jump and Land");
+                    Invoke("CheckIfStartedJumping", 0f);
+                    Invoke("CheckIfLanded", 1f);
+                    _isJumping = true;
+                }
             }
-        }
-        else
-        {
-            CheckIfStoppedMoving();
-            CheckIfStoppedSprinting();
+
+            controller.Move(moveVector * Time.deltaTime);
+
+            // Code for moving
+            if (direction.magnitude >= 0.1f)
+            {
+                float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
+                float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+                transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+                Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+
+                if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftShift))
+                {
+                    controller.Move(moveDir.normalized * sprintspeed * Time.deltaTime);
+                }
+                else
+                {
+                    controller.Move(moveDir.normalized * normspeed * Time.deltaTime);
+                }
+            }
+            else
+            {
+                CheckIfStoppedMoving();
+                CheckIfStoppedSprinting();
+            }
         }
     }
 
@@ -179,5 +192,21 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         Sprinting?.Invoke();
         Debug.Log("Sprinting");
+    }
+
+    private void CheckIfStartedCasting()
+    {
+        Casting?.Invoke();
+        Debug.Log("Casting");
+
+        isCasting = true;
+    }
+
+    private void CheckIfStoppedCasting()
+    {
+        Idle.Invoke();
+        Debug.Log("Casting");
+
+        isCasting = false;
     }
 }

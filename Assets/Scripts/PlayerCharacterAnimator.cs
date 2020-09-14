@@ -12,6 +12,7 @@ public class PlayerCharacterAnimator : MonoBehaviour
     const string JumpState = "Jumping";
     const string FallState = "Falling";
     const string SprintState = "Sprinting";
+    const string CastState = "Casting";
 
     Animator _animator = null;
 
@@ -27,6 +28,7 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.Jumping += OnJumping;
         _thirdPersonMovement.Falling += OnFalling;
         _thirdPersonMovement.Sprinting += OnSprinting;
+        _thirdPersonMovement.Casting += OnCasting;
     }
 
     private void OnDisable()
@@ -36,11 +38,17 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.Jumping -= OnJumping;
         _thirdPersonMovement.Falling -= OnFalling;
         _thirdPersonMovement.Sprinting -= OnSprinting;
+        _thirdPersonMovement.Casting -= OnCasting;
     }
 
     public void OnIdle()
     {
         _animator.CrossFadeInFixedTime(IdleState, .2f);
+    }
+
+    public void OnCasting()
+    {
+        _animator.CrossFadeInFixedTime(CastState, .2f);
     }
 
     public void OnSprinting()
