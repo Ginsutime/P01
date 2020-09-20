@@ -51,3 +51,5 @@ MonoBehaviour:
   telekinesisCastSound: {fileID: 8300000, guid: 582dc67a2dcb3d949b52d70cc9f2be07,
     type: 3}
   telekinesisHitSound: {fileID: 8300000, guid: 2e85339c6a12589488f9f33be4b15313, type: 3}
+  playerMovement: {fileID: 3213063483208293484, guid: 67e484ae0e1343044b8af76a41edb660,
+    type: 3}

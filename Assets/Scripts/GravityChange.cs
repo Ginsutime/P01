@@ -12,26 +12,36 @@ public class GravityChange : Ability
 
     int forceAmount = 100;
 
+    ThirdPersonMovement playerMovement;
+
     public override void Use(Transform origin, Transform target)
     {
+        playerMovement = GetComponentInParent<ThirdPersonMovement>();
+
         int layerMask = LayerMask.GetMask("Gravity");
         RaycastHit hit;
 
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            CastActivateFeedback();
+            if (playerMovement.groundedPlayer)
+            {
+                CastActivateFeedback();
+            }
         }
 
         if (Physics.Raycast(origin.position, origin.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
         {
             if (hit.rigidbody != null)
             {
-                Debug.Log("Gravity detect working");
-                hit.rigidbody.AddForce(Vector3.up * forceAmount);
+                if (playerMovement.groundedPlayer && playerMovement.movingPlayer != true)
+                {
+                    Debug.Log("Gravity detect working");
+                    hit.rigidbody.AddForce(Vector3.up * forceAmount);
 
-                hit.collider.GetComponent<Renderer>().material = objectTelekinesis;
+                    hit.collider.GetComponent<Renderer>().material = objectTelekinesis;
 
-                CastHitFeedback();
+                    CastHitFeedback();
+                }
             }
         }
     }
