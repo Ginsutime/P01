@@ -16,10 +16,18 @@ public class ThirdPersonMovement : MonoBehaviour
 
     [SerializeField] CharacterController controller = null;
     [SerializeField] Transform cam = null;
+    [SerializeField] GameObject character;
 
     [SerializeField] float turnSmoothTime = 0.1f;
     [SerializeField] float normspeed = 6f;
     [SerializeField] float sprintspeed = 10f;
+
+    [SerializeField] AudioClip jumpingSound;
+    [SerializeField] AudioClip sprintSpeed;
+    [SerializeField] AudioClip landedSound;
+    [SerializeField] ParticleSystem jumpFeedback;
+    [SerializeField] ParticleSystem fallFeedback;
+    [SerializeField] ParticleSystem sprintFeedback;
 
     float turnSmoothVelocity;
     bool _isMoving = false;
@@ -189,6 +197,9 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             Sprinting?.Invoke();
             Debug.Log("Started sprinting");
+
+            AudioHelper.PlayClip2D(sprintSpeed, 1f);
+            sprintFeedback.Play(true);
         }
 
         _isSprinting = true;
@@ -200,6 +211,8 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             Idle?.Invoke();
             Debug.Log("Stopped sprinting");
+
+            sprintFeedback.Stop(true);
         }
 
         _isSprinting = false;
@@ -220,12 +233,18 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         Jumping?.Invoke();
         Debug.Log("Jumping");
+
+        AudioHelper.PlayClip2D(jumpingSound, 1f);
+        Instantiate(jumpFeedback, transform.position, Quaternion.identity);
     }
 
     private void CheckIfLanded()
     {
         Falling?.Invoke();
         Debug.Log("Landed");
+
+        AudioHelper.PlayClip2D(landedSound, 1f);
+        Instantiate(fallFeedback, new Vector3(character.transform.position.x - 1, 0, character.transform.position.z), Quaternion.Euler(-90, 0, 0));
     }
 
     private void CheckIfSprinting()
